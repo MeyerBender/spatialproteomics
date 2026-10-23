@@ -1,6 +1,5 @@
 from typing import Dict
 
-import numpy as np
 import pandas as pd
 import xarray as xr
 from sklearn.cluster import KMeans
