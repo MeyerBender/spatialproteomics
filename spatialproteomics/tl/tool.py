@@ -221,10 +221,9 @@ def astir(
         **kwargs,
     )
 
-    # merging the resulting dataframe to the adata object
-    df = pd.DataFrame(adata.obs)
-    df = df.merge(assigned_cell_types, left_on="id", right_on=cell_id_col, how="left")
-    adata.obs = df.drop(columns=cell_id_col)
+    # adding the predicted cell types to the adata object (the cell ids are the obs_names of the expression matrix)
+    cell_types = assigned_cell_types.set_index(cell_id_col)[cell_type_col]
+    adata.obs[cell_type_col] = cell_types.reindex(adata.obs_names).values
 
     if copy:
         return sdata
