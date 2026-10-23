@@ -30,6 +30,14 @@ def _relabel_cell_coords(obj, relabel_dict: dict):
     return obj.assign_coords(coords)
 
 
+def _pixel_to_coordinate(values: np.ndarray, coords: np.ndarray) -> np.ndarray:
+    """Map (sub)pixel positions along one axis onto the corresponding coordinate values of that axis."""
+    coords = np.asarray(coords, dtype=float)
+    if len(coords) == 1:
+        return np.asarray(values, dtype=float) + coords[0]
+    return np.interp(values, np.arange(len(coords)), coords)
+
+
 def merge(images: List[np.ndarray], proj: str = "sum", alpha: float = 0.5):
     """
     Merge multiple images into a single image using different projection methods.
