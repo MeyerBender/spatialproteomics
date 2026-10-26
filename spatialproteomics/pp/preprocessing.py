@@ -2294,7 +2294,7 @@ class PreprocessingAccessor:
         Returns
         -------
         xr.Dataset
-            The object with the merged channels in the image layer.
+            The object with the merged channel added to the layer given by layer_key.
         """
         # check that the new channel name does not already exist
         assert (
@@ -2312,7 +2312,7 @@ class PreprocessingAccessor:
 
         # add the new channel to the object
         # if there are multiple layers with channels as coordinates, this will turn it into float32, since it will introduce NaNs for the new channel in other layers
-        obj = self._obj.pp.add_channel(channels=key_added, array=merged)
+        obj = self._obj.pp.add_channel(channels=key_added, array=merged, layer_key=layer_key)
         return obj
 
     def find_bright_cells(
