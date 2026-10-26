@@ -83,3 +83,14 @@ def test_merge_segmentation_from_multiple_layers_incompatible_shapes(ds_segmenta
         match="Segmentation mask '_segmentation_to_merge' must be 2D.",
     ):
         ds.pp.merge_segmentation(layer_key=["_segmentation", key])
+
+
+def test_merge_segmentation_from_multiple_layers_default_labels(ds_segmentation):
+    # without labels, the masks are named after their layer keys (not after the channels of the image)
+    ds = ds_segmentation.pp["DAPI"]
+    ds["_segmentation_2"] = ds[Layers.SEGMENTATION].copy()
+    merged = ds.pp.merge_segmentation(layer_key=[Layers.SEGMENTATION, "_segmentation_2"], threshold1=0, threshold2=1)
+
+    origins = set(merged["_merged_segmentation"].attrs.values())
+    assert origins <= {Layers.SEGMENTATION, "_segmentation_2"}
+    assert Layers.SEGMENTATION in origins

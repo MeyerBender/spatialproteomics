@@ -1881,6 +1881,7 @@ class PreprocessingAccessor:
             The name of the new segmentation mask to be added to the xarray object. Default is "_merged_segmentation".
         labels : Optional[List[str]]
             Optional. Labels corresponding to each segmentation mask. If provided, must match number of arrays.
+            If None, the channel names (single 3D mask) or the layer keys (list of 2D masks) are used.
         threshold1: float
             Optional. Threshold for merging cells. Default is 0.7.
         threshold2: float
@@ -1976,8 +1977,12 @@ class PreprocessingAccessor:
 
             if labels is not None:
                 label_1, label_2 = labels[i - 1], labels[i]
-            else:
+            elif len(layer_keys) == 1:
+                # single 3D stack → the masks are named after the channels
                 label_1, label_2 = channels[i - 1], channels[i]
+            else:
+                # multiple 2D masks → the masks are named after their layer keys
+                label_1, label_2 = layer_keys[i - 1], layer_keys[i]
 
             # Perform merging
             segmentation, final_mapping = _merge_segmentation(
