@@ -57,3 +57,13 @@ def test_astir_xarray_with_int_cell_ids(ds_segmentation, fake_astir):
 
     assert Layers.LA_PROPERTIES in ds
     assert ds.sizes[Dims.CELLS] == ds_segmentation.sizes[Dims.CELLS]
+
+
+def test_astir_xarray_passes_kwargs(ds_segmentation, fake_astir, monkeypatch):
+    received = {}
+    monkeypatch.setattr(fake_astir, "fit_type", lambda self, **kwargs: received.update(kwargs))
+
+    ds = ds_segmentation.pp.add_quantification(func="intensity_mean")
+    ds.tl.astir(MARKER_DICT, delta_loss=0.01)
+
+    assert received["delta_loss"] == 0.01
