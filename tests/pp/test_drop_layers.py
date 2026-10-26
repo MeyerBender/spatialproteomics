@@ -71,3 +71,12 @@ def test_drop_layers_obs(ds_labels):
     reduced = ds_labels.pp.drop_layers(Layers.OBS)
     assert Layers.OBS not in reduced
     assert Layers.SEGMENTATION not in reduced
+
+
+def test_drop_layers_does_not_modify_input_list(ds_segmentation):
+    layers = [Layers.SEGMENTATION]
+    dropped = ds_segmentation.pp.drop_layers(layers)
+
+    assert layers == [Layers.SEGMENTATION]
+    assert Layers.SEGMENTATION not in dropped
+    assert Layers.OBS not in dropped
