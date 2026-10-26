@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 from spatialproteomics.constants import Layers
@@ -71,3 +73,32 @@ def test_drop_layers_obs(ds_labels):
     reduced = ds_labels.pp.drop_layers(Layers.OBS)
     assert Layers.OBS not in reduced
     assert Layers.SEGMENTATION not in reduced
+
+
+def test_drop_layers_keep_segmentation_without_obs_warns(ds_segmentation, caplog):
+    # segmentation and observations are always dropped together
+    with caplog.at_level(logging.WARNING):
+        reduced = ds_segmentation.pp.drop_layers(keep=[Layers.IMAGE, Layers.SEGMENTATION])
+
+    assert "Cannot keep segmentation and drop observations. Removing both." in caplog.text
+    assert Layers.SEGMENTATION not in reduced
+    assert Layers.OBS not in reduced
+
+
+def test_drop_layers_keep_obs_without_segmentation_warns(ds_segmentation, caplog):
+    with caplog.at_level(logging.WARNING):
+        reduced = ds_segmentation.pp.drop_layers(keep=[Layers.IMAGE, Layers.OBS])
+
+    assert "Cannot keep observations and drop segmentation. Removing both." in caplog.text
+    assert Layers.SEGMENTATION not in reduced
+    assert Layers.OBS not in reduced
+
+
+def test_drop_layers_keep_segmentation_no_obs_present(ds_segmentation, caplog):
+    # if there are no observations, the segmentation can be kept and no warning is shown
+    ds = ds_segmentation.drop_vars(Layers.OBS).drop_dims("features")
+    with caplog.at_level(logging.WARNING):
+        reduced = ds.pp.drop_layers(keep=[Layers.IMAGE, Layers.SEGMENTATION])
+
+    assert "Removing both" not in caplog.text
+    assert Layers.SEGMENTATION in reduced
