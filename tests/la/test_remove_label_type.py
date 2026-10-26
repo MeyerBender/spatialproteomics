@@ -53,3 +53,14 @@ def test_remove_label_type_then_predict_cell_types_argmax(ds_labels):
     # partial annotations with unlabeled cells are filled in by the argmax prediction
     ds = ds.la.predict_cell_types_argmax({"PAX5": "B", "CD3": "T"}, overwrite_existing_labels=False)
     assert Layers.LA_PROPERTIES in ds
+
+
+def test_remove_label_type_does_not_modify_input_properties(ds_labels):
+    # the label properties read from zarr are converted internally, but the input must stay untouched
+    props_before = ds_labels[Layers.LA_PROPERTIES].copy(deep=True)
+    ds = ds_labels.la.remove_label_type("B")
+
+    assert ds_labels[Layers.LA_PROPERTIES].dtype == props_before.dtype
+    assert ds_labels[Layers.LA_PROPERTIES].identical(props_before)
+    # the properties of the remaining labels are kept
+    assert ds.la._label_to_dict(Props.NAME) == {0: "Unlabeled", 2: "T", 3: "T_h", 4: "T_tox"}
