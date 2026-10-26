@@ -274,13 +274,17 @@ class NeighborhoodAccessor:
             name=Layers.NH_PROPERTIES,
         )
 
-        if Layers.NH_PROPERTIES in self._obj:
+        obj = self._obj
+        if Layers.NH_PROPERTIES in obj:
             da = xr.concat(
-                [self._obj[Layers.NH_PROPERTIES], da],
+                [obj[Layers.NH_PROPERTIES], da],
                 dim=Dims.NH_PROPS,
             )
+            # dropping the old layer, otherwise the outer join would reindex it and fill it with NaNs,
+            # which fails for numpy StringDType arrays (as returned by xarray>=2026 when reading zarr)
+            obj = obj.drop_vars([Layers.NH_PROPERTIES, Dims.NH_PROPS])
 
-        return xr.merge([da, self._obj], join="outer", compat="no_conflicts")
+        return xr.merge([da, obj], join="outer", compat="no_conflicts")
 
     def add_neighborhoods_from_dataframe(
         self,
