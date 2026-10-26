@@ -886,7 +886,6 @@ class PlotAccessor:
                     boundary_color=boundary_color,
                     boundary_thickness=boundary_thickness,
                 )
-                self._obj = self._obj.drop_vars(Layers.PLOT)
             else:
                 attrs = {}
                 rendered = _render_neighborhoods(
