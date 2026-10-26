@@ -170,3 +170,12 @@ def test_neighborhood_deselect_numeric_wrong_input(ds_labels):
 
     with pytest.raises(ValueError, match="Neighborhood Neighborhood 13 not found."):
         ds_neighborhoods_numeric.nh.deselect("Neighborhood 13")
+
+
+def test_neighborhood_deselect_mixed_ids_and_names(ds_neighborhoods):
+    # ids and names can be mixed in a list
+    ds = ds_neighborhoods.nh.deselect([1, "Neighborhood 3"])
+    assert np.all(ds.coords[Dims.NEIGHBORHOODS].values == np.array([2, 4, 5]))
+
+    with pytest.raises(ValueError, match="Neighborhood Neighborhood 13 not found."):
+        ds_neighborhoods.nh.deselect([1, "Neighborhood 13"])

@@ -93,3 +93,12 @@ def test_label_slicing_non_contiguous_labels(ds_labels):
     assert np.all(ds.coords[Dims.LABELS].values == np.array([1, 3, 4]))
     assert np.all(ds.la[:].coords[Dims.LABELS].values == np.array([1, 3, 4]))
     assert np.all(ds.la[2:].coords[Dims.LABELS].values == np.array([3, 4]))
+
+
+def test_label_deselect_mixed_ids_and_names(ds_labels):
+    # ids and names can be mixed in a list
+    ds = ds_labels.la.deselect([1, "T"])
+    assert np.all(ds.coords[Dims.LABELS].values == np.array([3, 4]))
+
+    with pytest.raises(ValueError, match="Label type Cell type 13 not found."):
+        ds_labels.la.deselect([1, "Cell type 13"])

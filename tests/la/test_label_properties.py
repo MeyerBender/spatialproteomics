@@ -73,3 +73,14 @@ def test_label_properties_fixed_width_strings(ds_labels):
 
     recolored = ds.la.set_label_colors("B", "lightgoldenrodyellow")
     assert "lightgoldenrodyellow" in recolored[Layers.LA_PROPERTIES].sel(la_props=Props.COLOR).values
+
+
+def test_set_label_colors_by_id(ds_labels):
+    # labels can be identified by their id instead of their name
+    ds = ds_labels.la.set_label_colors(1, "black")
+    assert ds.la._label_to_dict(Props.COLOR)[1] == "black"
+
+    ds = ds_labels.la.set_label_colors([1, "T"], ["black", "white"])
+    colors = ds.la._label_to_dict(Props.COLOR)
+    assert colors[1] == "black"
+    assert colors[ds_labels.la._label_name_to_id("T")] == "white"

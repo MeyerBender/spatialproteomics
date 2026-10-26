@@ -298,14 +298,16 @@ class LabelAccessor:
             sel = _ids_in_slice(self._obj.coords[Dims.LABELS].values, indices)
         elif isinstance(indices, list):
             assert all([isinstance(i, (int, str)) for i in indices]), "All label indices must be integers or strings."
-            if all([isinstance(i, int) for i in indices]):
-                sel = indices
-            else:
-                label_dict = self._obj.la._label_to_dict(Props.NAME, reverse=True)
-                for idx in indices:
+            # names are converted to their ids, ids are used as they are (both can be mixed)
+            sel = []
+            for idx in indices:
+                if isinstance(idx, str):
+                    label_dict = self._obj.la._label_to_dict(Props.NAME, reverse=True)
                     if idx not in label_dict:
-                        raise ValueError(f"Label type {indices} not found.")
-                sel = [label_dict[idx] for idx in indices]
+                        raise ValueError(f"Label type {idx} not found.")
+                    sel.append(label_dict[idx])
+                else:
+                    sel.append(idx)
         elif isinstance(indices, tuple):
             indices = list(indices)
             all_int = all([type(i) is int for i in indices])
@@ -740,19 +742,19 @@ class LabelAccessor:
         # adding the new property layer
         return xr.merge([property_layer, obj], join="outer", compat="no_conflicts")
 
-    def set_label_colors(self, labels: Union[str, List[str]], colors: Union[str, List[str]]):
+    def set_label_colors(self, labels: Union[int, str, List[Union[int, str]]], colors: Union[str, List[str]]):
         """
-        Set the color of a specific cell type label.
+        Set the color of one or more cell type labels.
 
-        This method sets the 'color' of a specific cell type label identified by the 'label'.
-        The 'label' can be either a label ID or the name of the cell type label.
+        This method sets the color of the cell type labels identified by 'labels'.
+        Each label can be either a label ID or the name of the cell type label.
 
         Parameters
         ----------
-        label : int or str
-            The ID or name of the cell type label whose color will be updated.
-        color : any
-            The new color to be assigned to the specified cell type label.
+        labels : int, str or list of int or str
+            The ID(s) or name(s) of the cell type labels whose color will be updated.
+        colors : str or list of str
+            The new color(s) to be assigned to the specified cell type labels.
 
         Returns
         -------
@@ -763,7 +765,7 @@ class LabelAccessor:
         - The function converts the 'label' from its name to the corresponding ID for internal processing.
         - It updates the color of the cell type label in the data object to the new 'color'.
         """
-        if isinstance(labels, str):
+        if isinstance(labels, (str, int)):
             labels = [labels]
         if isinstance(colors, str):
             colors = [colors]
@@ -790,8 +792,9 @@ class LabelAccessor:
                 logger.warning(f"Label {label} not found in the data object. Skipping.")
                 continue
 
-            # getting the id for the label
-            label = self._obj.la._label_name_to_id(label)
+            # getting the id for the label (if the input was not numeric already)
+            if isinstance(label, str):
+                label = self._obj.la._label_name_to_id(label)
 
             # setting the new color for the given label
             array[labels_layer.index(label), props_layer.index(Props.COLOR)] = color

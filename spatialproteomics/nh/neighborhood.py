@@ -129,14 +129,16 @@ class NeighborhoodAccessor:
             assert all(
                 [isinstance(i, (int, str)) for i in indices]
             ), "All neighborhood indices must be integers or strings."
-            if all([isinstance(i, int) for i in indices]):
-                sel = indices
-            else:
-                neighborhood_dict = self._obj.nh._neighborhood_to_dict(Props.NAME, reverse=True)
-                for idx in indices:
+            # names are converted to their ids, ids are used as they are (both can be mixed)
+            sel = []
+            for idx in indices:
+                if isinstance(idx, str):
+                    neighborhood_dict = self._obj.nh._neighborhood_to_dict(Props.NAME, reverse=True)
                     if idx not in neighborhood_dict:
-                        raise ValueError(f"Neighborhood {indices} not found.")
-                sel = [neighborhood_dict[idx] for idx in indices]
+                        raise ValueError(f"Neighborhood {idx} not found.")
+                    sel.append(neighborhood_dict[idx])
+                else:
+                    sel.append(idx)
         elif isinstance(indices, tuple):
             indices = list(indices)
             all_int = all([type(i) is int for i in indices])
