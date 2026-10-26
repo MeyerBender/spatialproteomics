@@ -186,3 +186,18 @@ def test_invalid_markers(ds_labels):
     # these should not be in there, because those markers were not binarized
     assert "T_reg" not in df["labels_2"].values
     assert "T_bla" not in df["labels_2"].values
+
+
+def test_predict_cell_subtypes_without_markers_only_affects_parent_type(ds_labels):
+    # a subtype without markers (e.g. a catch-all category) may only be assigned to cells of its parent type
+    ds = get_ds_without_subtype_predictions(ds_labels)
+    subtype_dict = {"T": {"subtypes": [{"name": "Other T", "markers": []}]}}
+
+    ds_subtypes = ds.la.predict_cell_subtypes(subtype_dict)
+    df = ds_subtypes.pp.get_layer_as_df(Layers.LA_LAYERS)
+
+    is_t = df["labels_0"] == "T"
+    assert is_t.any() and (~is_t).any()
+    assert np.all(df.loc[is_t, "labels_1"] == "Other T")
+    # all other cells keep their original label
+    assert np.all(df.loc[~is_t, "labels_1"] == df.loc[~is_t, "labels_0"])

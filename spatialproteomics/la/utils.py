@@ -107,6 +107,13 @@ def _predict_cell_subtypes(df, subtype_dict):
                 # Check which cells match the markers and parent type
                 # by default, the condition is true, and new conditions are concatenated with an and, so that the condition is true only if all conditions are true
                 condition = pd.Series([True] * len(df), index=df.index)
+
+                # subtypes can only be assigned to cells of their parent type
+                # (this is checked independently of the markers, so that subtypes without markers are handled correctly)
+                if parent_type is not None:
+                    previous_label_column = f"labels_{level - 1}" if level > 0 else "_labels"
+                    condition &= df[previous_label_column] == parent_type
+
                 for marker in markers:
                     marker_name = marker[:-1]
                     sign = marker[-1]
@@ -117,15 +124,7 @@ def _predict_cell_subtypes(df, subtype_dict):
                         condition &= False
                         continue
 
-                    if parent_type is None:
-                        # Root level: Only check marker positivity
-                        condition &= df[f"{marker_name}_binarized"] == value
-                    else:
-                        # Must match both parent type and marker positivity
-                        previous_label_column = f"labels_{level - 1}" if level > 0 else "_labels"
-                        condition &= (df[f"{marker_name}_binarized"] == value) & (
-                            df[previous_label_column] == parent_type
-                        )
+                    condition &= df[f"{marker_name}_binarized"] == value
 
                 # Update labels for current level (adding a new column)
                 new_label_column = f"labels_{level}"
