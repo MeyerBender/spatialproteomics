@@ -275,7 +275,11 @@ def spotiflow(
         sdata = cp.deepcopy(sdata)
 
     channels = _get_channels_spatialdata(channel)
-    img = _process_image(sdata, channels=channel, image_key=image_key, key_added=None)
+    img = _process_image(sdata, channels=channel, image_key=image_key, key_added=None, return_values=False)
+    # if no channel is specified, spots are detected in all channels
+    if channels is None:
+        channels = img.coords["c"].values.tolist()
+    img = img.values
     adata = _process_adata(sdata, table_key=table_key)
 
     points_df = _spotiflow(
