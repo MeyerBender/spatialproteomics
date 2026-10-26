@@ -1,6 +1,10 @@
 import numpy as np
 
-from spatialproteomics.pp.utils import _get_disconnected_cell, handle_disconnected_cells
+from spatialproteomics.pp.utils import (
+    _check_for_disconnected_cells,
+    _get_disconnected_cell,
+    handle_disconnected_cells,
+)
 
 
 def test_handle_disconnected_cells():
@@ -68,3 +72,11 @@ def test_get_disconnected_cell():
     # should flag 1
     disconnected_cell = _get_disconnected_cell(arr)
     assert disconnected_cell == 1
+
+
+def test_get_disconnected_cell_diagonal_connection():
+    # cells that are only connected diagonally are not disconnected (8-connectivity)
+    arr = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]])
+
+    assert not _check_for_disconnected_cells(arr, handle="ignore")
+    assert _get_disconnected_cell(arr) is None
